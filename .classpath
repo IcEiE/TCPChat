@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry excluding="jsontest/src/" kind="src" path=""/>
+	<classpathentry kind="src" path="jsontest/src"/>
+	<classpathentry kind="lib" path="jsontest/src/libs/json-simple-1.1.jar"/>
+	<classpathentry kind="output" path="jsontest/bin"/>
+</classpath>
