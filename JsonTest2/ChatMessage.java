@@ -5,9 +5,11 @@ public class ChatMessage{
 		
 	private JSONObject obj = new JSONObject();
 		
-	public ChatMessage(String command, String parameters){
+	public ChatMessage(String command, String sender, String receiver, String parameters){
 		obj.put("command", command);
 		obj.put("parameters", parameters);
+		obj.put("Sender", sender);
+		obj.put("Receiver", receiver);
 		obj.put("timestamp", System.currentTimeMillis());
 	}
 
@@ -21,5 +23,13 @@ public class ChatMessage{
 	
 	public String getTimeStamp(){
 		return obj.get("timestamp").toString();
+	}
+	
+	public String getSender() {
+		return (String)obj.get("Sender");
+	}
+	
+	public String getReceiver() {
+		return (String)obj.get("Receiver");
 	}
 }

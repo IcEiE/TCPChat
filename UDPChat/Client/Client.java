@@ -23,7 +23,6 @@ public class Client implements ActionListener {
 	try {
 	    Client instance = new Client(args[2]);
 	    instance.connectToServer(args[0], Integer.parseInt(args[1]));
-	    ChatMessage ch = new ChatMessage();
 	} catch(NumberFormatException e) {
 	    System.err.println("Error: port number must be an integer.");
 	    System.exit(-1);
