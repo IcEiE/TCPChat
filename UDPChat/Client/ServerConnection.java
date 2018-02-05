@@ -37,7 +37,7 @@ public class ServerConnection {
 	// * receive response message from server
 	// * unmarshal response message to determine whether connection was successful
 	// * return false if connection failed (e.g., if user name was taken)
-		ChatMessage cm = getChatMessage("/connect", name, null, null);
+		sendChatMessage(getChatMessage("/connect", name, null, null));
 		
 		
 	return true;
@@ -55,9 +55,13 @@ public class ServerConnection {
 	return "";
     }
 
-    public void sendChatMessage(String message) {
-    	Random generator = new Random();
-    	double failure = generator.nextDouble();
+    public void sendChatMessage(ChatMessage messageObj) {
+		try {
+			outStream.writeObject(messageObj);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
     /*
