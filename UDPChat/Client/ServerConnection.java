@@ -37,7 +37,8 @@ public class ServerConnection {
 	// * receive response message from server
 	// * unmarshal response message to determine whether connection was successful
 	// * return false if connection failed (e.g., if user name was taken)
-		sendChatMessage(getChatMessage("/connect", name, null, null));
+		sendChatMessage(name + " " + "/connect");
+		Object msg = inStream.readObject();
 		
 		
 	return true;
@@ -55,9 +56,10 @@ public class ServerConnection {
 	return "";
     }
 
-    public void sendChatMessage(ChatMessage messageObj) {
+    public void sendChatMessage(String message) {
+    	getChatMessage(message);
 		try {
-			outStream.writeObject(messageObj);
+			outStream.writeObject(message);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -116,8 +118,12 @@ public class ServerConnection {
     	return null;
     }
     
-    private ChatMessage getChatMessage(String commando, String sender, String receiver, String message) {
-    	return new ChatMessage(commando, sender, receiver, message);
+    private ChatMessage getChatMessage(String message) {
+    	String[] messageList = message.split("//s+", 3); 
+    	String sender = messageList[0];
+    	String commando = messageList[1];
+    	message = messageList[2];
+    	return new ChatMessage(sender, commando, message);
     }
     
 }
