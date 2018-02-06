@@ -25,7 +25,7 @@ public class ServerConnection {
     private ObjectOutputStream outStream;
 
     public ServerConnection(String hostName, int port) {
-	m_socket = createSocket(hostName, port);	
+	m_socket = createSocket(hostName, port);
 	inStream = createObjectInputStream();
 	outStream = createObjectOutputStream();
     }
@@ -36,9 +36,9 @@ public class ServerConnection {
 	// * send message via socket
 	// * receive response message from server
 	// * unmarshal response message to determine whether connection was successful
-	// * return false if connection failed (e.g., if user name was taken)
+	// * return false if connection failed (e.g., if user name was taken)	
 		sendChatMessage(name + " " + "/connect");
-		Object msg = inStream.readObject();
+//		Object msg = inStream.readObject();
 		
 		
 	return true;
@@ -57,9 +57,8 @@ public class ServerConnection {
     }
 
     public void sendChatMessage(String message) {
-    	getChatMessage(message);
 		try {
-			outStream.writeObject(message);
+			outStream.writeObject(getChatMessage(message));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -72,10 +71,8 @@ public class ServerConnection {
      */
     
     private Socket createSocket(String address, int port) {
-    	Socket s;
 		try {
-			s = new Socket(createInetAddress(address), port);
-			return s;
+			return new Socket(createInetAddress(address), port);
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -89,8 +86,7 @@ public class ServerConnection {
     
 	private InetAddress createInetAddress(String hostName) {
 		try {
-			InetAddress address = InetAddress.getByName(hostName);
-			return address;
+			return InetAddress.getByName(hostName);
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
