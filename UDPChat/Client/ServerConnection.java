@@ -31,16 +31,8 @@ public class ServerConnection {
     }
 
 	public boolean handshake(String name) {
-	// TODO:
-	// * marshal connection message containing user name
-	// * send message via socket
-	// * receive response message from server
-	// * unmarshal response message to determine whether connection was successful
-	// * return false if connection failed (e.g., if user name was taken)	
 		sendChatMessage(name + " " + "/connect");
-//		Object msg = inStream.readObject();
-		
-		
+
 	return true;
     }
 
