@@ -1,7 +1,9 @@
 package JsonTest2;
+import java.io.Serializable;
+
 import org.json.simple.JSONObject;
 
-public class ChatMessage{
+public class ChatMessage implements Serializable{
 		
 	private JSONObject obj = new JSONObject();
 		
