@@ -20,18 +20,10 @@ import JsonTest2.ChatMessage;
  */
 public class ServerConnection {
 
-<<<<<<< HEAD
-	public boolean handshake(String name) {
-		sendChatMessage(name + " " + "/connect");
-
-	return true;
-    }
-=======
 	private Socket m_socket = null;
 	private ObjectInputStream inStream;
 	private ObjectOutputStream outStream;
 	private final String m_name;
->>>>>>> 45295c0f6c76bd89dbda5c77849c0ff8294cd061
 
 	public ServerConnection(String hostName, int port, String name) {
 		m_name = name;

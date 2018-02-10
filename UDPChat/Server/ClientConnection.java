@@ -8,10 +8,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import JsonTest2.ChatMessage;
 
 /**
  * 
@@ -19,20 +19,32 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ClientConnection implements Runnable{
 	
-	private final String m_name;
-	private final InetAddress m_address;
+	private String m_name = null;
 	private final ObjectInputStream inStream;
 	private final ObjectOutputStream outStream;
 	private final Socket clientSocket;
-	private final LinkedBlockingQueue messageList;
+	private final LinkedBlockingQueue<ChatMessage> mailBox;
 
-	public ClientConnection(String name, InetAddress address, Socket socket, LinkedBlockingQueue lbq) {
-		m_name = name;
-		m_address = address;
+	public ClientConnection(Socket socket, LinkedBlockingQueue<ChatMessage> lbq) {
 		clientSocket = socket;
-		inStream = createObjectInputStream();
 		outStream = createObjectOutputStream();
-		messageList = lbq;
+		inStream = createObjectInputStream();
+		mailBox = lbq;
+	}
+	
+	private void listenForClientMessages(){
+		try {
+			ChatMessage ch = (ChatMessage) inStream.readObject();
+			m_name = ch.getSender();
+			
+			do{
+				mailBox.add(ch);
+				ch = (ChatMessage) inStream.readObject();
+			}while(true);
+		} catch (ClassNotFoundException | IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 
 	public void sendMessage(String message, DatagramSocket socket) {
@@ -45,7 +57,7 @@ public class ClientConnection implements Runnable{
 
 	@Override
 	public void run() {
-		
+		listenForClientMessages();
 		
 	}
 	
