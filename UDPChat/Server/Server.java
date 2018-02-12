@@ -1,6 +1,8 @@
 package UDPChat.Server;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 //
 // Source file for the server side. 
@@ -12,14 +14,17 @@ import java.io.IOException;
 import java.net.*;
 //import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import JsonTest2.ChatMessage;
 
 public class Server {
 
-	private ArrayList<ClientConnection> m_connectedClients = new ArrayList<ClientConnection>();
+	private Map<String, ClientConnection> m_connectedClients = new HashMap<>();
 	private Socket m_socket;
 	private ServerSocket listenerSocket;
 	private LinkedBlockingQueue<ChatMessage> mailBox = new LinkedBlockingQueue<>();
@@ -31,6 +36,7 @@ public class Server {
 		}
 		try {
 			Server instance = new Server(Integer.parseInt(args[0]));
+			instance.startThreadForMailBox();
 			instance.listenForNewClients();
 		} catch (NumberFormatException e) {
 			System.err.println("Error: port number must be an integer.");
@@ -42,39 +48,30 @@ public class Server {
 		listenerSocket = createServerSocket(portNumber);
 	}
 
-	public boolean addClient(String name, Socket clientSocket) {
-		ClientConnection c;
-		for (Iterator<ClientConnection> itr = m_connectedClients.iterator(); itr.hasNext();) {
-			c = itr.next();
-			if (c.hasName(name)) {
-				return false; // Already exists a client with this name
-			}
+	public boolean addClient(String name, ClientConnection cc) {
+		if (m_connectedClients.containsKey(name)) {
+			return false;
 		}
-		m_connectedClients.add(new ClientConnection(clientSocket, mailBox));
+		m_connectedClients.put(name, cc);
 		return true;
 	}
 
-	public void sendPrivateMessage(String message, String name) {
-		ClientConnection c;
-		// for(Iterator<ClientConnection> itr = m_connectedClients.iterator();
-		// itr.hasNext();) {
-		// c = itr.next();
-		// if(c.hasName(name)) {
-		// c.sendMessage(message, m_socket);
-		// }
-		// }
+	public void sendPrivateMessage(ChatMessage cm) {
+		ClientConnection c = m_connectedClients.get(cm.getReceiver());
+		c.sendMessage(cm);
+		c = m_connectedClients.get(cm.getSender());
+		c.sendMessage(cm);
 	}
 
-	public void broadcast(String message) {
-		// for(Iterator<ClientConnection> itr = m_connectedClients.iterator();
-		// itr.hasNext();) {
-		// itr.next().sendMessage(message, m_socket);
-		// }
+	public void broadcast(ChatMessage cm) {
+		for (ClientConnection cc : m_connectedClients.values()) {
+			cc.sendMessage(cm);
+		}
 	}
 
 	/*
-	 * -------------------------------------------------------------------------
-	 * -- Private methods used for the public methods which is used for the
+	 * ------------------------------------------------------------------------- --
+	 * Private methods used for the public methods which is used for the
 	 * functionality of the client.
 	 */
 	private ServerSocket createServerSocket(int port) {
@@ -87,33 +84,114 @@ public class Server {
 		return null;
 	}
 
-	private void createThreadForMailBox() {
-    	new Thread(){
-			public void run(){
+	private void startThreadForMailBox() {
+		new Thread() {
+			public void run() {
 				System.out.println("Waiting for client messages... ");
-				while(true){
+				while (true) {
 					try {
-						System.out.println("1) i run ska kolla mail");
 						ChatMessage cm = mailBox.take();
-						System.out.println("2) taken");
+						executeMessage(cm);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 			}
-    	}.start();
+		}.start();
 	}
 
 	private void listenForNewClients() {
 		do {
 			try {
 				Socket newClient = listenerSocket.accept();
-				new Thread(new ClientConnection(newClient, mailBox)).start();
+				ObjectInputStream inStream = createObjectInputStream(newClient);
+				ObjectOutputStream outStream = createObjectOutputStream(newClient);
+				ChatMessage cm = null;
+				do {
+					try {
+						cm = (ChatMessage) inStream.readObject();
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} while (!cm.getCommand().trim().equals("/connect"));
+				ClientConnection cc = new ClientConnection(cm.getSender(), newClient, outStream, inStream, mailBox);
+				addClient(cm.getSender(), cc);
+				new Thread(cc).start();
+				broadcast(cm);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} while (true);
 	}
+
+	private void executeMessage(ChatMessage cm) {
+		switch (cm.getCommand()) {
+		case "/tell":
+			if (m_connectedClients.containsKey(cm.getReceiver())) {
+				sendPrivateMessage(cm);
+			}
+			break;
+
+		case "/all":
+			broadcast(cm);
+			break;
+
+		case "/list":
+			m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("List of clients: " + m_connectedClients.keySet()));
+			break;
+		
+		case "/help":
+			switch(cm.getParameters()) {
+			case "tell":
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/tell is used to send a private message to another connected client\n Syntax: /tell nameOfClient message"));
+				break;
+				
+			case "all":
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/all is used to broadcast a message to all members.\n Syntax: /all message"));
+				break;
+				
+			case "list":
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/list returns a list of all currently connected clients on the server.\n Syntax: /list"));
+				break;
+				
+			default:
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("Commandos: help, tell, all, list. To learn more about the commando write /help and after the command you want to read about. \n Syntax: /help commandoName"));
+				break;
+			}
+			
+		case "/roll":
+			Random rand;
+			broadcast(getChatMessage(cm.getSender() + " rolled " + rand.nextInt(0);
+		}
+		
+
+	}
+
+	private ObjectInputStream createObjectInputStream(Socket clientSocket) {
+		try {
+			return new ObjectInputStream(clientSocket.getInputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private ObjectOutputStream createObjectOutputStream(Socket clientSocket) {
+		try {
+			return new ObjectOutputStream(clientSocket.getOutputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private ChatMessage getChatMessage(String message) {
+		return new ChatMessage("Sever", "/list", message);
+	}
+
 }

@@ -1,44 +1,54 @@
 package JsonTest2;
+
 import java.io.Serializable;
 
 import org.json.simple.JSONObject;
 
-public class ChatMessage implements Serializable{
-		
+public class ChatMessage implements Serializable {
+
 	private JSONObject obj = new JSONObject();
-		
-	public ChatMessage(String sender, String command, String parameters){
-		obj.put("command", command);
-		obj.put("sender", sender);
+
+	public ChatMessage(String sender, String command, String parameters) {
+		obj.put("command", command.trim());
+		obj.put("sender", sender.trim());
 		obj.put("timestamp", System.currentTimeMillis());
-		if(command.equals("/tell")) {
-			String[] messageList = parameters.split("//s+", 2); 
-			String receiver = messageList[0];
-			String message = messageList[1];
-	    	obj.put("receiver", receiver);
-		}
-		else {
+		switch (command) {
+		case "/connect":
+			obj.put("parameters", this.getSender() + " has connected to the server");
+			break;
+		case "/tell":
+			String[] messageList1 = parameters.split("\\s+", 2);
+			obj.put("receiver", messageList1[0]);
+			obj.put("parameters", this.getSender() + " to " + this.getReceiver() + ": " + parameters);
+			break;
+			
+		case "/all":
+			obj.put("parameters", this.getSender() + " to all: " + parameters);
+			obj.put("receiver", "all");
+			break;
+		
+		default:
 			obj.put("parameters", parameters);
 		}
 	}
 
-	public String getCommand(){
-		return (String)obj.get("command");	
+	public String getCommand() {
+		return (String) obj.get("command");
 	}
-	
-	public String getParameters(){
-		return (String)obj.get("parameters");	
+
+	public String getParameters() {
+		return (String) obj.get("parameters");
 	}
-	
-	public String getTimeStamp(){
+
+	public String getTimeStamp() {
 		return obj.get("timestamp").toString();
 	}
-	
+
 	public String getSender() {
-		return (String)obj.get("Sender");
+		return (String) obj.get("sender");
 	}
-	
+
 	public String getReceiver() {
-		return (String)obj.get("Receiver");
+		return (String) obj.get("receiver");
 	}
 }

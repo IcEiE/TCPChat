@@ -19,27 +19,27 @@ import JsonTest2.ChatMessage;
  */
 public class ClientConnection implements Runnable{
 	
-	private String m_name = null;
+	private final String m_name;
 	private final ObjectInputStream inStream;
 	private final ObjectOutputStream outStream;
 	private final Socket clientSocket;
 	private final LinkedBlockingQueue<ChatMessage> mailBox;
 
-	public ClientConnection(Socket socket, LinkedBlockingQueue<ChatMessage> lbq) {
+	public ClientConnection(String name, Socket socket, ObjectOutputStream out, ObjectInputStream in, LinkedBlockingQueue<ChatMessage> lbq) {
+		m_name = name;
 		clientSocket = socket;
-		outStream = createObjectOutputStream();
-		inStream = createObjectInputStream();
+		outStream = out;
+		inStream = in;
 		mailBox = lbq;
 	}
 	
 	private void listenForClientMessages(){
 		try {
-			ChatMessage ch = (ChatMessage) inStream.readObject();
-			m_name = ch.getSender();
+			ChatMessage cm;
 			
 			do{
-				mailBox.add(ch);
-				ch = (ChatMessage) inStream.readObject();
+				cm = (ChatMessage) inStream.readObject();
+				mailBox.add(cm);
 			}while(true);
 		} catch (ClassNotFoundException | IOException e1) {
 			// TODO Auto-generated catch block
@@ -47,8 +47,21 @@ public class ClientConnection implements Runnable{
 		}
 	}
 
-	public void sendMessage(String message, DatagramSocket socket) {
-				
+	public Socket getOutputStream() {
+		return clientSocket;
+	}
+	
+	public String getName() {
+		return m_name;
+	}
+	
+	public void sendMessage(ChatMessage cm) {
+				try {
+					outStream.writeObject(cm);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 	}
 
 	public boolean hasName(String testName) {
@@ -58,27 +71,6 @@ public class ClientConnection implements Runnable{
 	@Override
 	public void run() {
 		listenForClientMessages();
-		
 	}
-	
-    private ObjectInputStream createObjectInputStream() {
-    	try {
-			return new ObjectInputStream(clientSocket.getInputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	return null;
-    }
-    
-    private ObjectOutputStream createObjectOutputStream() {
-    	try {
-			return new ObjectOutputStream(clientSocket.getOutputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	return null;
-    }
 
 }

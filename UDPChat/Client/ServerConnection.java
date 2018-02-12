@@ -20,18 +20,15 @@ import JsonTest2.ChatMessage;
  */
 public class ServerConnection {
 
-<<<<<<< HEAD
-	public boolean handshake(String name) {
-		sendChatMessage(name + " " + "/connect");
+	public boolean handshake() {
+		sendChatMessage("/connect");
 
 	return true;
     }
-=======
 	private Socket m_socket = null;
 	private ObjectInputStream inStream;
 	private ObjectOutputStream outStream;
 	private final String m_name;
->>>>>>> 45295c0f6c76bd89dbda5c77849c0ff8294cd061
 
 	public ServerConnection(String hostName, int port, String name) {
 		m_name = name;
@@ -40,35 +37,25 @@ public class ServerConnection {
 		inStream = createObjectInputStream();
 	}
 
-	public boolean handshake() {
-		// TODO:
-		// * marshal connection message containing user name
-		// * send message via socket
-		// * receive response message from server
-		// * unmarshal response message to determine whether connection was
-		// successful
-		// * return false if connection failed (e.g., if user name was taken)
-		sendChatMessage("/connect");
-		// Object msg = inStream.readObject();
-
-		return true;
-	}
-
 	public String receiveChatMessage() {
-		// TODO:
-		// * receive message from server
-		// * unmarshal message if necessary
-
-		// Note that the main thread can block on receive here without
-		// problems, since the GUI runs in a separate thread
-
-		// Update to return message contents
-		return "";
+		ChatMessage cm;
+		try {
+			cm = (ChatMessage) inStream.readObject();
+			return (cm.getParameters());
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public void sendChatMessage(String message) {
 		try {
-			outStream.writeObject(getChatMessage(message));
+			ChatMessage cm = getChatMessage(message);
+			outStream.writeObject(cm);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -126,13 +113,13 @@ public class ServerConnection {
 	}
 
 	private ChatMessage getChatMessage(String message) {
-    	String[] messageList = message.split("//s+", 2);
-    	String commando = messageList[0];
-    	String newMessage = null;
+    	String[] messageList = message.split("\\s+", 2);
+    	String command = messageList[0];
+    	String newMessage = "";
     	if(messageList.length > 1){
     		newMessage = messageList[1];
     	}
-    	return new ChatMessage(m_name, commando, newMessage);
+    	return new ChatMessage(m_name, command, newMessage);
     }
 
 }
