@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadLocalRandom;
 
 import JsonTest2.ChatMessage;
 
@@ -146,25 +147,31 @@ public class Server {
 		case "/help":
 			switch(cm.getParameters()) {
 			case "tell":
-				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/tell is used to send a private message to another connected client\n Syntax: /tell nameOfClient message"));
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/tell is used to send a private message to another connected client. \nSyntax: /tell nameOfClient message"));
 				break;
 				
 			case "all":
-				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/all is used to broadcast a message to all members.\n Syntax: /all message"));
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/all is used to broadcast a message to all members. \nSyntax: /all message"));
 				break;
 				
 			case "list":
-				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/list returns a list of all currently connected clients on the server.\n Syntax: /list"));
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/list returns a list of all currently connected clients on the server. \nSyntax: /list"));
+				break;
+				
+			case "roll":
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/roll returns a random value between 1 and 100. \nSyntax: /roll"));
 				break;
 				
 			default:
-				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("Commandos: help, tell, all, list. To learn more about the commando write /help and after the command you want to read about. \n Syntax: /help commandoName"));
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("Commandos: help, tell, all, list, roll. To learn more about the commando write /help and after the command you want to read about. \nSyntax: /help commandoName"));
 				break;
 			}
+			break;
 			
 		case "/roll":
-			Random rand;
-			broadcast(getChatMessage(cm.getSender() + " rolled " + rand.nextInt(0);
+			int randomNum = ThreadLocalRandom.current().nextInt(1, 100);
+			broadcast(getChatMessage(cm.getSender() + " rolled " + randomNum));
+			break;
 		}
 		
 
