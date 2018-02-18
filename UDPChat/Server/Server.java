@@ -118,9 +118,10 @@ public class Server {
 					}
 				} while (!cm.getCommand().trim().equals("/connect"));
 				ClientConnection cc = new ClientConnection(cm.getSender(), newClient, outStream, inStream, mailBox);
-				addClient(cm.getSender(), cc);
-				new Thread(cc).start();
-				broadcast(cm);
+				if(addClient(cm.getSender(), cc)){
+					new Thread(cc).start();
+					broadcast(cm);
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -162,8 +163,12 @@ public class Server {
 				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/roll returns a random value between 1 and 100. \nSyntax: /roll"));
 				break;
 				
+			case "leave":
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("/leave turns off your client and removes you from the server. \nSyntax: /leave"));
+				break;
+				
 			default:
-				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("Commandos: help, tell, all, list, roll. To learn more about the commando write /help and after the command you want to read about. \nSyntax: /help commandoName"));
+				m_connectedClients.get(cm.getSender()).sendMessage(getChatMessage("Commandos: help, tell, all, list, leave, roll. To learn more about the commando write /help and after the command you want to read about. \nSyntax: /help commandoName"));
 				break;
 			}
 			break;
@@ -171,9 +176,13 @@ public class Server {
 		case "/roll":
 			int randomNum = ThreadLocalRandom.current().nextInt(1, 100);
 			broadcast(getChatMessage(cm.getSender() + " rolled " + randomNum));
+			break;		
+			
+		case "/leave":
+			removeClient(cm);
+			broadcast(getChatMessage(cm.getSender() + " has left the server!"));
 			break;
-		}
-		
+		}	
 
 	}
 
@@ -199,6 +208,10 @@ public class Server {
 
 	private ChatMessage getChatMessage(String message) {
 		return new ChatMessage("Sever", "/list", message);
+	}
+	
+	private void removeClient(ChatMessage cm) {
+		m_connectedClients.remove(cm.getSender());
 	}
 
 }

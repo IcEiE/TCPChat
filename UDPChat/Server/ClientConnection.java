@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import JsonTest2.ChatMessage;
@@ -35,12 +36,21 @@ public class ClientConnection implements Runnable{
 	
 	private void listenForClientMessages(){
 		try {
+			boolean activeClient = true;
 			ChatMessage cm;
 			
 			do{
-				cm = (ChatMessage) inStream.readObject();
-				mailBox.add(cm);
-			}while(true);
+				try{
+					cm = (ChatMessage) inStream.readObject();
+					mailBox.add(cm);
+				}
+				catch (SocketException e){
+					mailBox.add(getLeftChatMessage());
+					clientSocket.close();
+					activeClient = false;
+				}
+				
+			}while(activeClient);
 		} catch (ClassNotFoundException | IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -66,6 +76,10 @@ public class ClientConnection implements Runnable{
 
 	public boolean hasName(String testName) {
 		return testName.equals(m_name);
+	}
+	
+	private ChatMessage getLeftChatMessage() {
+		return new ChatMessage(m_name, "/leave", null);
 	}
 
 	@Override

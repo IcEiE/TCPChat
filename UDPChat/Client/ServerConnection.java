@@ -55,7 +55,12 @@ public class ServerConnection {
 	public void sendChatMessage(String message) {
 		try {
 			ChatMessage cm = getChatMessage(message);
-			outStream.writeObject(cm);
+			if(!cm.getCommand().equals("/leave")) {
+				outStream.writeObject(cm);
+			}
+			else{
+				System.exit(-1);
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
