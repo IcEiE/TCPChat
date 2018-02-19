@@ -14,16 +14,16 @@ public class ChatMessage implements Serializable {
 		obj.put("timestamp", System.currentTimeMillis());
 		switch (command) {
 		case "/connect":
-			obj.put("parameters", this.getSender() + " has connected to the server");
+			obj.put("parameters", sender + " has connected to the server");
 			break;
 		case "/tell":
 			String[] messageList1 = parameters.split("\\s+", 2);
 			obj.put("receiver", messageList1[0]);
-			obj.put("parameters", this.getSender() + " to " + this.getReceiver() + ": " + parameters);
+			obj.put("parameters", sender + " to " + this.getReceiver() + ": " + parameters);
 			break;
 			
 		case "/all":
-			obj.put("parameters", this.getSender() + " to all: " + parameters);
+			obj.put("parameters", sender + " to all: " + parameters);
 			obj.put("receiver", "all");
 			break;
 		
